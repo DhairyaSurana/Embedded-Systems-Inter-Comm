@@ -3,7 +3,7 @@
 
 // TI-Driver includes
 #include <ti/drivers/UART.h>
-#include "Board.h"
+#include "ti_drivers_config.h"
 
 //Defines
 
