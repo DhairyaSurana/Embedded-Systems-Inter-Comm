@@ -208,8 +208,8 @@ SlWlanSecParams_t SecurityParams = { 0 };
 char ClientId[13] = {'\0'};
 
 /* Client User Name and Password                                             */
-const char *ClientUsername = "username1";
-const char *ClientPassword = "pwd1";
+const char *ClientUsername = "DS" //"username1";
+const char *ClientPassword = "ds" //"pwd1";
 
 /* Subscription topics and qos values                                        */
 char *topic[SUBSCRIPTION_TOPIC_COUNT] =
