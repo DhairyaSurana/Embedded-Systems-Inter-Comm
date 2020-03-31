@@ -48,7 +48,9 @@
 
 /* Application includes                                                      */
 #include "client_cbs.h"
+#include "com_queue.h"
 #include "debug.h"
+
 extern bool gResetApplication;
 
 //*****************************************************************************
@@ -173,8 +175,9 @@ void MqttClientCallback(int32_t event,
 
         struct publishMsgHeader msgHead;
 
+        data_struct queueElem;
+
         char *pubBuff = NULL;
-        struct msgQueue queueElem;
 
         topicOffset = sizeof(struct publishMsgHeader);
         payloadOffset = sizeof(struct publishMsgHeader) +
@@ -183,13 +186,13 @@ void MqttClientCallback(int32_t event,
         bufSizeReqd += sizeof(struct publishMsgHeader);
         bufSizeReqd += recvMetaData->topLen + 1;
         bufSizeReqd += dataLen + 1;
-        pubBuff = (char *) malloc(bufSizeReqd);
+//        pubBuff = (char *) malloc(bufSizeReqd);
 
-        if(pubBuff == NULL)
-        {
-            APP_PRINT("malloc failed: recv_cb\n\r");
-            return;
-        }
+//        if(pubBuff == NULL)
+//        {
+//            APP_PRINT("malloc failed: recv_cb\n\r");
+//            return;
+//        }
 
         msgHead.topicLen = recvMetaData->topLen;
         msgHead.payLen = dataLen;
@@ -208,25 +211,27 @@ void MqttClientCallback(int32_t event,
         memcpy((void*) (pubBuff + payloadOffset), (const void*) data, dataLen);
         memset((void*) (pubBuff + payloadOffset + dataLen), '\0', 1);
 
-        APP_PRINT("\n\rMsg Recvd. by client\n\r");
-        APP_PRINT("TOPIC: %s\n\r", pubBuff + topicOffset);
-        APP_PRINT("PAYLOAD: %s\n\r", pubBuff + payloadOffset);
-        APP_PRINT("QOS: %d\n\r", recvMetaData->qos);
+//        APP_PRINT("\n\rMsg Recvd. by client\n\r");
+//        APP_PRINT("TOPIC: %s\n\r", pubBuff + topicOffset);
+//        APP_PRINT("PAYLOAD: %s\n\r", pubBuff + payloadOffset);
+//        APP_PRINT("QOS: %d\n\r", recvMetaData->qos);
 
         if(recvMetaData->retain)
         {
             APP_PRINT("Retained\n\r");
         }
 
-        if(recvMetaData->dup)
-        {
-            APP_PRINT("Duplicate\n\r");
-        }
+//        if(recvMetaData->dup)
+//        {
+//            APP_PRINT("Duplicate\n\r");
+//        }
 
         /* filling the queue element details                              */
-        queueElem.event = MSG_RECV_BY_CLIENT;
-        queueElem.msgPtr = pubBuff;
-        queueElem.topLen = recvMetaData->topLen;
+//        queueElem.event = MSG_RECV_BY_CLIENT;
+//        queueElem.msgPtr = pubBuff;
+//        queueElem.topLen = recvMetaData->topLen;
+        queueElem.type = message_data;
+        queueElem.value.message = (pubBuff + payloadOffset);
 
         /* signal to the main task                                        */
         if(MQTT_SendMsgToQueue(&queueElem))
