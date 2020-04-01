@@ -23,21 +23,21 @@ def on_message(client, uerdata, msg):
     try:
         d = json.loads(msg.payload.decode('utf-8'))
         if msg.topic == 'ultra':
-            if d.keys() != {'id', 'pub', 'rec', 'id', 'distance', 'time'}:
+            if d.keys() < {'id', 'pub', 'rec', 'distance', 'time'}:
                 # not all fields are there
                 bad = True
         elif msg.topic == 'pixy':
-            if d.keys() != {'id', 'pub', 'rec', 'x_coordinate', 'y_coordinate', 'height', 'width', 'signature', 'time'}:
+            if d.keys() < {'id', 'pub', 'rec', 'x_coordinate', 'y_coordinate', 'height', 'width', 'signature', 'time'}:
                 # not all of the fields required are there
                 bad = True
         elif msg.topic == 'arm':
-            if d.keys() != {'id', 'pub', 'rec', 'status', 'time'}:
+            if d.keys() < {'id', 'pub', 'rec', 'status', 'time'}:
                 bad = True
         elif msg.topic == 'rover':
-            if d.keys() != {'id', 'pub', 'rec', 'status', 'atDestination', 'time'}:
+            if d.keys() < {'id', 'pub', 'rec', 'status', 'atDestination', 'time'}:
                 bad = True
         elif msg.topic == 'topics':
-            if d.keys() != {'id', 'topic1', 'topic2', 'topic3', 'topic4'}:
+            if d.keys() < {'id', 'topic1', 'topic2', 'topic3', 'topic4'}:
                 bad = True
             subs[d['topic1']].append(d['id'])#adds board to topic
             subs[d['topic2']].append(d['id'])
@@ -69,7 +69,7 @@ def on_message(client, uerdata, msg):
             recM[d['id']] = rec[d['id']] - d['rec']#updates missed number of recieves
             
             
-        #print(msg.topic, str(msg.payload))
+        print(msg.topic, str(msg.payload))
         
         print('Stats:')
         #print(pub, bad)
