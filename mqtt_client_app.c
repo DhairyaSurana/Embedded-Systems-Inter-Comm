@@ -365,7 +365,7 @@ void pushButtonInterruptHandler2(uint_least8_t index)
     /* Disable the SW2 interrupt */
     GPIO_disableInt(CONFIG_GPIO_BUTTON_0); // SW2
 
-    queueElement.event = PUBLISH_PUSH_BUTTON_PRESSED;
+    queueElement.event = PUBLISH_TO_ROVER;
     queueElement.msgPtr = NULL;
     queueElement.rovStatus = 0;
     queueElement.rovDestination = 0;
@@ -464,7 +464,8 @@ void * roverSim(void *pvParameters)//RRR
 
     struct msgQueue queueElement;
 
-    queueElement.event = PUBLISH_PUSH_BUTTON_PRESSED;
+    queueElement.event = PUBLISH_SUBSCRIPTIONS;
+    //queueElement.event = PUBLISH_TO_ROVER;
     queueElement.msgPtr = NULL;
     queueElement.rovStatus = 0;
     queueElement.rovDestination = 0;
@@ -491,13 +492,11 @@ void * roverSim(void *pvParameters)//RRR
         while (1) {}
     }
 
+
     if (Timer_start(timer0) == Timer_STATUS_ERROR) {
         /* Failed to start timer */
         while (1) {}
     }
-
-
-
     while(1){
 
         queueElement.rovStatus = queueElement.rovStatus + 1;
@@ -508,6 +507,7 @@ void * roverSim(void *pvParameters)//RRR
        {
            UART_PRINT("\n\n\rQueue is full\n\n\r");
        }
+       queueElement.event = PUBLISH_TO_ROVER;
 
         if (Timer_start(timer0) == Timer_STATUS_ERROR) {
             /* Failed to start timer */
@@ -561,6 +561,7 @@ void * MqttClient(void *pvParameters)
     /*client) OR msg received by the client from the remote broker (need to  */
     /*be sent to the server to see if any local client has subscribed on the */
     /*same topic).                                                           */
+    char pub_data[50];
     for(;; )
     {
         dbgOutputLoc(DBG_MqttClient_WAITFORSIG);
@@ -570,14 +571,14 @@ void * MqttClient(void *pvParameters)
 
         switch(queueElemRecv.event)
         {
-        case PUBLISH_PUSH_BUTTON_PRESSED:
+        case PUBLISH_TO_ROVER:
             published = published+1;
             dbgOutputLoc(DBG_MqttClient_PUBLISH);
             /*send publish message                                       */
 
 
             //char pub_data[] = "{\"id\": \"rover\", \n\"pub\": 1, \n\"rec\": 2, \n\"status\": 10, \n\"atDestination\": 10, \n\"time\": 10\n}";
-            char pub_data[50];
+            //char pub_data[50];
             sprintf(pub_data, "{\"id\": \"%s\", \n\"pub\": %d, \n\"rec\": %d, \n\"status\": %d, \n\"atDestination\": %d, \n\"time\": %d\n}", BOARD_ID, published, recieved, queueElemRecv.rovStatus, queueElemRecv.rovDestination, queueElemRecv.rovTime);
 
 
@@ -600,7 +601,26 @@ void * MqttClient(void *pvParameters)
             GPIO_enableInt(CONFIG_GPIO_BUTTON_0);     // SW2
 
             break;
+        case PUBLISH_SUBSCRIPTIONS:
+                    published = published+1;
 
+                    sprintf(pub_data, "{\"id\": \"%s\", \n\"pub\": %d, \n\"rec\": %d, \n\"t1\": \"pixy\", \n\"t2\": \"ultra\", \n\"t3\": \"\", \n\"t4\": \"\" \n}", BOARD_ID, published, recieved);
+
+
+                    lRetVal =
+                        MQTTClient_publish(gMqttClient, (char*) publish_topic, strlen(
+                                              (char*)publish_topic),
+                                              pub_data,
+                                          strlen(pub_data), MQTT_QOS_2 |
+                                          ((RETAIN_ENABLE) ? MQTT_PUBLISH_RETAIN : 0));
+
+
+
+
+                    UART_PRINT("\n\r CC3200 Publishes the following message \n\r");
+                    UART_PRINT("Topic: %s\n\r", publish_topic);
+                    UART_PRINT("Data: %s\n\r", pub_data);
+            break;
         /*msg received by client from remote broker (on a topic      */
         /*subscribed by local client)                                */
         case MSG_RECV_BY_CLIENT:
@@ -1292,7 +1312,7 @@ void mainThread(void * args)
         /*Stop the MQTT Process                                              */
         Mqtt_Stop();
 
-        UART_PRINT("reopen MQTT # %d  \r\n", ++count);
+        //UART_PRINT("reopen MQTT # %d  \r\n", ++count);
         dbgOutputLoc(DBG_mainThread_DISCONNECTED);
         while(true)
         {
