@@ -58,8 +58,22 @@ timenow = datetime.datetime.now()
 ret =  client.publish("rover", "{\"id\": \"rover\", \"pub\": 3, \"rec\": 2, \"status\": \"stopped\", \"atDestination\": \"true\", \"time\": " + str(timenow.strftime("%H%M%S")) + "}")
 time.sleep(1)
 
+# Arm publishing message of searching and then retrieved after reciving message from pixy and rover
+timenow = datetime.datetime.now()
+ret =  client.publish("arm", "{\"id\": \"arm\", \"pub\": 2, \"rec\": 3, \"status\": \"searching\", \"time\": " + str(timenow.strftime("%H%M%S")) + "}")
+time.sleep(1)
+timenow = datetime.datetime.now()
+ret =  client.publish("arm", "{\"id\": \"arm\", \"pub\": 3, \"rec\": 3, \"status\": \"retrieved\", \"time\": " + str(timenow.strftime("%H%M%S")) + "}")
+time.sleep(1)
+
+# Rover publishing message of moving after reciving message from arm
+timenow = datetime.datetime.now()
+ret =  client.publish("rover", "{\"id\": \"rover\", \"pub\": 4, \"rec\": 4, \"status\": \"moving\", \"atDestination\": \"false\", \"time\": " + str(timenow.strftime("%H%M%S")) + "}")
+time.sleep(1)
+
+# End of simulation
 # Disconnecting from cloudmqtt
 client.disconnect()
 
 # letting user know that script has executed
-print("End of script")
+print("End of simulation")
