@@ -1,5 +1,5 @@
 #include "json_parse.h"
-
+#include <string.h>
 
 
 /* Prints out struct values to UART */
@@ -8,7 +8,7 @@ void printDevData(dev_data d) {
     UART_PRINT("DEVICE STRUCT {\r\n\r\n");
 
     UART_PRINT("    id: ");
-    UART_PRINT("%d", d.id);
+    UART_PRINT("%s", d.id);
     UART_PRINT("\r\n");
 
     UART_PRINT("    pub: ");
@@ -19,16 +19,25 @@ void printDevData(dev_data d) {
     UART_PRINT("%d", d.rec);
     UART_PRINT("\r\n");
 
+    UART_PRINT("    seq_num: ");
+    UART_PRINT("%d", d.seq_num);
+    UART_PRINT("\r\n");
+
     UART_PRINT("    time: ");
     UART_PRINT("%d", d.time);
     UART_PRINT("\r\n");
 
     UART_PRINT("    status: ");
-    UART_PRINT("%d", d.status);
+    UART_PRINT("%s", d.status);
     UART_PRINT("\r\n");
 
     UART_PRINT("    atDestination: ");
-    UART_PRINT("%d", d.atDestination);
+
+    if(d.atDestination)
+        UART_PRINT("true");
+    else
+        UART_PRINT("false");
+
     UART_PRINT("\r\n");
 
     UART_PRINT("    x: ");
@@ -54,16 +63,38 @@ void printDevData(dev_data d) {
 
     UART_PRINT("    signature: ");
     UART_PRINT("%d", d.signature);
+    UART_PRINT("\r\n");
+
+    UART_PRINT("    topic1: ");
+    UART_PRINT("%s", d.topic1);
+    UART_PRINT("\r\n");
+
+    UART_PRINT("    topic2: ");
+    UART_PRINT("%s", d.topic2);
+    UART_PRINT("\r\n");
+
+    UART_PRINT("    topic3: ");
+    UART_PRINT("%s", d.topic3);
+    UART_PRINT("\r\n");
+
+    UART_PRINT("    topic4: ");
+    UART_PRINT("%s", d.topic4);
+
 
     UART_PRINT("\r\n}\r\n");
 
 }
 
 /* Wrapper for cJSON_GetObjectItemCaseSensitive function*/
-int getValue(cJSON *obj, char *field) {
+int getIntValue(cJSON *obj, char *field) {
 
     int val = cJSON_GetObjectItemCaseSensitive(obj, field)->valueint;
     return (val != 64943) ? val : -1;       // -1 indicates values not found
+}
+
+char *getStrValue(cJSON *obj, char *field) {
+
+    return cJSON_GetObjectItemCaseSensitive(obj, field)->valuestring;
 }
 
 /* Returns a struct with values from str string (JSON format) */
@@ -71,51 +102,81 @@ struct dev_data getJSONData(char *str) {
 
     cJSON *json_obj = cJSON_Parse(str);
 
-    // initializint struct
-    dev_data d_data = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    // initialize struct
+    dev_data d_data = {"None", -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, "None", false, "None", "None", "None", "None"};
 
-    d_data.id = getValue(json_obj, "id");
-    d_data.pub = getValue(json_obj, "pub");
-    d_data.rec = getValue(json_obj, "rec");
-    d_data.time = getValue(json_obj, "time");
+    d_data.id = getStrValue(json_obj, "id");
+    d_data.pub = getIntValue(json_obj, "pub");
+    d_data.rec = getIntValue(json_obj, "rec");
 
-    switch(cJSON_GetArraySize(json_obj)) {
 
-        case 5: // ultra or arm
+    int size = cJSON_GetArraySize(json_obj);
+    UART_PRINT("ID: %s/r/n", d_data.id);
+    UART_PRINT("SIZE: %d/r/n", size);
 
-            d_data.dist = getValue(json_obj, "distance");
-            d_data.status = getValue(json_obj, "status");
+        if(strcmp(d_data.id, "ultra") == 0) {
 
-            cJSON_Delete(json_obj);
-            return d_data;
+                d_data.time = getIntValue(json_obj, "time");
+                d_data.dist = getIntValue(json_obj, "distance");
+                d_data.status = getStrValue(json_obj, "status");
+                d_data.seq_num = getIntValue(json_obj, "sequence_number");
 
-        case 6: // rover
+                cJSON_Delete(json_obj);
+                return d_data;
+        }
 
-            d_data.status = getValue(json_obj, "status");
-            d_data.atDestination = getValue(json_obj, "atDestination");
+        if(strcmp(d_data.id, "arm") == 0) {
 
-            cJSON_Delete(json_obj);
-            return d_data;
+                d_data.time = getIntValue(json_obj, "time");
+                d_data.status = getStrValue(json_obj, "status");
 
-        case 9: // pixy
+                cJSON_Delete(json_obj);
+                return d_data;
+        }
 
-            d_data.x = getValue(json_obj, "x_coordinate");
-            d_data.y = getValue(json_obj, "y_coordinate");
-            d_data.height = getValue(json_obj, "height");
-            d_data.width = getValue(json_obj, "width");
-            d_data.signature = getValue(json_obj, "signature");
+        if(strcmp(d_data.id, "rover") == 0) { // rover
 
-            cJSON_Delete(json_obj);
-            return d_data;
+                d_data.time = getIntValue(json_obj, "time");
+                d_data.status = getStrValue(json_obj, "status");
+                d_data.atDestination = getIntValue(json_obj, "atDestination");
 
-        default: // Incorrect size error handling
+                cJSON_Delete(json_obj);
+                return d_data;
+        }
 
-            UART_PRINT("ERROR: Incorrect size\r\n");
-            dev_data null_data = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+        if(strcmp(d_data.id, "pixy") == 0) { // pixy
+
+                d_data.time = getIntValue(json_obj, "time");
+                d_data.x = getIntValue(json_obj, "x_coordinate");
+                d_data.y = getIntValue(json_obj, "y_coordinate");
+                d_data.height = getIntValue(json_obj, "height");
+                d_data.width = getIntValue(json_obj, "width");
+                d_data.signature = getIntValue(json_obj, "signature");
+
+                cJSON_Delete(json_obj);
+                return d_data;
+        }
+
+        if(strcmp(d_data.id, "topics") == 0) {
+
+                d_data.topic1 = getStrValue(json_obj, "topic1");
+                d_data.topic2 = getStrValue(json_obj, "topic2");
+                d_data.topic3 = getStrValue(json_obj, "topic3");
+                d_data.topic4 = getStrValue(json_obj, "topic4");
+
+                cJSON_Delete(json_obj);
+                return d_data;
+
+        }
+
+        else {
+
+            UART_PRINT("ERROR: id not recognized\r\n");
+            dev_data null_data = {"None", -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, "None", false, "None", "None", "None", "None"};
+
 
             cJSON_Delete(json_obj);
             return null_data;
-
-    }
+        }
 
 }

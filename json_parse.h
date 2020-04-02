@@ -1,16 +1,18 @@
 #include "cJSON.h"
 #include "uart_term.h"
+#include <stdbool.h>
 
 typedef struct dev_data {
 
     // Common values
-    int id;
+    char* id;
     int pub;
     int rec;
     int time;
 
     // ultra
     int dist;
+    int seq_num;
 
     // pixy
     int x;
@@ -19,8 +21,13 @@ typedef struct dev_data {
     int width;
     int signature;
 
-    int status; // ultra and arm
-    int atDestination; // rover
+    char* status; // ultra and arm
+    bool atDestination; // rover
+
+    char* topic1;
+    char* topic2;
+    char* topic3;
+    char* topic4;
 
 } dev_data;
 
@@ -28,7 +35,9 @@ typedef struct dev_data {
 void printDevData(dev_data d);
 
 /* Wrapper for cJSON_GetObjectItemCaseSensitive function*/
-int getValue(cJSON *obj, char *field);
+int getIntValue(cJSON *obj, char *field);
+
+char *getStrValue(cJSON *obj, char *field);
 
 /* Returns a struct with values from str string (JSON format) */
 struct dev_data getJSONData(char *str);
