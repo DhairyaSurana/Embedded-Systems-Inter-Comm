@@ -127,14 +127,16 @@
 
 /* Defining Subscription Topic Values                                        */
 #define SUBSCRIPTION_TOPIC0      "/Broker/To/cc32xx"
-#define SUBSCRIPTION_TOPIC1      "/cc3200/ToggleLEDCmdL1"
-#define SUBSCRIPTION_TOPIC2      "/cc3200/ToggleLEDCmdL2"
-#define SUBSCRIPTION_TOPIC3      "/cc3200/ToggleLEDCmdL3"
+#define SUBSCRIPTION_TOPIC1      "pixy"
+#define SUBSCRIPTION_TOPIC2      "ultra"
+#define SUBSCRIPTION_TOPIC3      "/cc3200/ToggleLEDCmdL1"
 
 /* Defining Publish Topic Values                                             */
 #define PUBLISH_TOPIC0           "rover"
 #define PUBLISH_TOPIC0_DATA \
     "{\"id\": \"rover\", \n\"pub\": 1, \n\"rec\": 2, \n\"status\": 10, \n\"atDestination\": 10, \n\"time\": 10\n}"
+
+#define PUBLISH_TOPIC1           "topics"//RRR
 
 //#define PUBLISH_TOPIC0_DATA \
 //    "{\"distance\": 9\n}"
@@ -194,7 +196,7 @@ int32_t MQTT_SendMsgToQueue(struct msgQueue *queueElement);
 int32_t published = 0;//RRR
 int32_t recieved = 0;//RRR
 #define BOARD_ID "rover"
-
+#define INIT_MSG "topics"
 
 int32_t gApConnectionState = -1;
 uint32_t gInitState = 0;
@@ -230,6 +232,9 @@ unsigned char qos[SUBSCRIPTION_TOPIC_COUNT] =
 
 /* Publishing topics and messages                                            */
 const char *publish_topic = { PUBLISH_TOPIC0 };
+
+const char *subscribed_topics = { PUBLISH_TOPIC1 };//RRR
+
 const char *publish_data = { PUBLISH_TOPIC0_DATA };
 
 /* Message Queue                                                             */
@@ -608,8 +613,8 @@ void * MqttClient(void *pvParameters)
 
 
                     lRetVal =
-                        MQTTClient_publish(gMqttClient, (char*) publish_topic, strlen(
-                                              (char*)publish_topic),
+                        MQTTClient_publish(gMqttClient, (char*) subscribed_topics, strlen(
+                                              (char*)subscribed_topics),
                                               pub_data,
                                           strlen(pub_data), MQTT_QOS_2 |
                                           ((RETAIN_ENABLE) ? MQTT_PUBLISH_RETAIN : 0));
@@ -618,7 +623,7 @@ void * MqttClient(void *pvParameters)
 
 
                     UART_PRINT("\n\r CC3200 Publishes the following message \n\r");
-                    UART_PRINT("Topic: %s\n\r", publish_topic);
+                    UART_PRINT("Topic: %s\n\r", subscribed_topics);
                     UART_PRINT("Data: %s\n\r", pub_data);
             break;
         /*msg received by client from remote broker (on a topic      */
