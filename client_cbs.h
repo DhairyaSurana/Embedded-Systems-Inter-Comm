@@ -80,9 +80,14 @@ struct client_info
 struct msgQueue
 {
     int32_t event;
-    void        *msgPtr; //RRR may need to change this...
+    void        *msgPtr;
     int32_t topLen;
+    //RRR
+    int32_t rovStatus;
+    int32_t rovDestination;
+    int32_t rovTime;
 };
+
 
 //******************************************************************************
 // APIs
