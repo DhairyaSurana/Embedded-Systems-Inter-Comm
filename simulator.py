@@ -40,7 +40,7 @@ time.sleep(1)
 
 # Pixy publishing message of current status
 timenow = datetime.datetime.now()
-ret =  client.publish("pixy", "{\"id\": \"pixy\", \"pub\": 2, \"rec\": 0, \"x_coordinate\": 10, \"y_coordinate\": 5, \"height\": 2, \"width\": 1, \"signature\": 1234, \"time\": " + str(timenow.strftime("%H%M%S")) + "}")
+ret =  client.publish("pixy", "{\"id\": \"pixy\", \"pub\": 2, \"rec\": 0, \"x_coordinate\": 10, \"y_coordinate\": 5, \"height\": 2, \"width\": 1, \"signature\": 1, \"time\": " + str(timenow.strftime("%H%M%S")) + "}")
 time.sleep(1)
 
 # Rover publishing message of moving after reciving message from pixy
@@ -50,7 +50,7 @@ time.sleep(1)
 
 # Ultrasonic Sensor publishing message of distance
 timenow = datetime.datetime.now()
-ret =  client.publish("ultra", "{\"id\": \"ultra\", \"pub\": 2, \"rec\": 0, \"distance\": 6, \"time\": " + str(timenow.strftime("%H%M%S")) + ", \"sequence_number\": 1}")
+ret =  client.publish("ultra", "{\"id\": \"ultra\", \"pub\": 2, \"rec\": 0, \"distance\": 6, \"time\": " + str(timenow.strftime("%H%M%S")) + "}")
 time.sleep(1)
 
 # Rover publishing message of atDestination and stopped after reciving message from pixy and ultra
@@ -69,6 +69,16 @@ time.sleep(1)
 # Rover publishing message of moving after reciving message from arm
 timenow = datetime.datetime.now()
 ret =  client.publish("rover", "{\"id\": \"rover\", \"pub\": 4, \"rec\": 4, \"status\": \"moving\", \"atDestination\": \"false\", \"time\": " + str(timenow.strftime("%H%M%S")) + "}")
+time.sleep(1)
+
+# Error: Ultrasonic Sensor publishing incorrect number of pubs
+timenow = datetime.datetime.now()
+ret =  client.publish("ultra", "{\"id\": \"ultra\", \"pub\": 4, \"rec\": 0, \"distance\": 10, \"time\": " + str(timenow.strftime("%H%M%S")) + "}")
+time.sleep(1)
+
+# Error: Rover publishing message with wrong number of fields
+timenow = datetime.datetime.now()
+ret =  client.publish("rover", "{\"id\": \"rover\", \"pub\": 5, \"rec\": 5}")
 time.sleep(1)
 
 # End of simulation
