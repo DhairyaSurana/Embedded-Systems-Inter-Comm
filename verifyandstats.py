@@ -72,7 +72,7 @@ def on_message(client, uerdata, msg):
         print(msg.topic, str(msg.payload))
         
         print('Stats:')
-        print(pub, bad)
+        #print(pub, bad)
         for client in pub:
             
             print(client,':')
