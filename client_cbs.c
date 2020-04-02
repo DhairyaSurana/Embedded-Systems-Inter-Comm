@@ -49,6 +49,11 @@
 /* Application includes                                                      */
 #include "client_cbs.h"
 #include "debug.h"
+#include "cJSON.h"
+#include "jsmn.h"
+#include "json_parse.h"
+
+
 extern bool gResetApplication;
 
 //*****************************************************************************
@@ -208,10 +213,14 @@ void MqttClientCallback(int32_t event,
         memcpy((void*) (pubBuff + payloadOffset), (const void*) data, dataLen);
         memset((void*) (pubBuff + payloadOffset + dataLen), '\0', 1);
 
-        APP_PRINT("\n\rMsg Recvd. by client\n\r");
-        APP_PRINT("TOPIC: %s\n\r", pubBuff + topicOffset);
-        APP_PRINT("PAYLOAD: %s\n\r", pubBuff + payloadOffset);
-        APP_PRINT("QOS: %d\n\r", recvMetaData->qos);
+        //APP_PRINT("\n\rMsg Recvd. by client\n\r");
+        //APP_PRINT("TOPIC: %s\n\r", pubBuff + topicOffset);
+        //APP_PRINT("PAYLOAD: %s\n\r", pubBuff + payloadOffset);
+
+        dev_data d = getJSONData(pubBuff + payloadOffset);
+        printDevData(d);
+
+        //APP_PRINT("QOS: %d\n\r", recvMetaData->qos);
 
         if(recvMetaData->retain)
         {
