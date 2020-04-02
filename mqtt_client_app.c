@@ -73,7 +73,6 @@
 #include "network_if.h"
 #include "uart_term.h"
 #include "cJSON.h"
-#include "jsmn.h"
 #include "json_parse.h"
 
 #include "debug.h" //RRR
