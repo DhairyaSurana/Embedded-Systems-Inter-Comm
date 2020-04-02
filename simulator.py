@@ -1,4 +1,11 @@
-# Neccesary libraries
+# -----------------------------------------------------------------------------
+# Script Name: simulator.py
+# Script Funtion: To simulate TI Boards publishing messages to MQTT
+# Date Created: 04/02/2020
+# Author: Kulneet Singh
+# -----------------------------------------------------------------------------
+
+# Neccesary Libraries
 import time
 import datetime
 import paho.mqtt.client as mqtt
@@ -34,6 +41,21 @@ time.sleep(1)
 # Pixy publishing message of current status
 timenow = datetime.datetime.now()
 ret =  client.publish("pixy", "{\"id\": \"pixy\", \"pub\": 2, \"rec\": 0, \"x_coordinate\": 10, \"y_coordinate\": 5, \"height\": 2, \"width\": 1, \"signature\": 1234, \"time\": " + str(timenow.strftime("%H%M%S")) + "}")
+time.sleep(1)
+
+# Rover publishing message of moving after reciving message from pixy
+timenow = datetime.datetime.now()
+ret =  client.publish("rover", "{\"id\": \"rover\", \"pub\": 2, \"rec\": 1, \"status\": \"moving\", \"atDestination\": \"false\", \"time\": " + str(timenow.strftime("%H%M%S")) + "}")
+time.sleep(1)
+
+# Ultrasonic Sensor publishing message of distance
+timenow = datetime.datetime.now()
+ret =  client.publish("ultra", "{\"id\": \"ultra\", \"pub\": 2, \"rec\": 0, \"distance\": 6, \"time\": " + str(timenow.strftime("%H%M%S")) + ", \"sequence_number\": 1}")
+time.sleep(1)
+
+# Rover publishing message of atDestination and stopped after reciving message from pixy and ultra
+timenow = datetime.datetime.now()
+ret =  client.publish("rover", "{\"id\": \"rover\", \"pub\": 3, \"rec\": 2, \"status\": \"stopped\", \"atDestination\": \"true\", \"time\": " + str(timenow.strftime("%H%M%S")) + "}")
 time.sleep(1)
 
 # Disconnecting from cloudmqtt
