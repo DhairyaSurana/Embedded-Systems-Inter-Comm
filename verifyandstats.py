@@ -37,12 +37,12 @@ def on_message(client, uerdata, msg):
             if d.keys() < {'id', 'pub', 'rec', 'status', 'atDestination', 'time'}:
                 bad = True
         elif msg.topic == 'topics':
-            if d.keys() < {'id', 'topic1', 'topic2', 'topic3', 'topic4'}:
+            if d.keys() < {'id', 'pub', 'rec', 't1', 't2', 't3', 't4'}:
                 bad = True
-            subs[d['topic1']].append(d['id'])#adds board to topic
-            subs[d['topic2']].append(d['id'])
-            subs[d['topic3']].append(d['id'])
-            subs[d['topic4']].append(d['id'])   
+            subs[d['t1']].append(d['id'])#adds board to topic
+            subs[d['t2']].append(d['id'])
+            subs[d['t3']].append(d['id'])
+            subs[d['t4']].append(d['id'])   
         else:
             bad = True
 
@@ -72,7 +72,7 @@ def on_message(client, uerdata, msg):
         print(msg.topic, str(msg.payload))
         
         print('Stats:')
-        #print(pub, bad)
+        print(pub, bad)
         for client in pub:
             
             print(client,':')
