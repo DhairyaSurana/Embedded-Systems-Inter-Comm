@@ -53,7 +53,10 @@ extern "C"
 //*****************************************************************************
 #define MAX_CONNECTION              1
 
-#define PUBLISH_PUSH_BUTTON_PRESSED 1
+#define PUBLISH_TO_ROVER 1
+
+#define PUBLISH_SUBSCRIPTIONS 2
+
 #define MSG_RECV_BY_CLIENT          11
 /* Client disconnected from remote broker       */
 #define LOCAL_CLIENT_DISCONNECTION  12 
