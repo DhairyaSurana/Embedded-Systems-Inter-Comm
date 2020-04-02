@@ -59,7 +59,7 @@
 /* TI-Driver includes                                                        */
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/SPI.h>
-
+#include <ti/drivers/Timer.h>
 /* Simplelink includes                                                       */
 #include <ti/drivers/net/wifi/simplelink.h>
 
@@ -170,11 +170,11 @@
 //*****************************************************************************
 //                      LOCAL FUNCTION PROTOTYPES
 //*****************************************************************************
-void pushButtonInterruptHandler2(uint_least8_t index);
-void pushButtonInterruptHandler3(uint_least8_t index);
-void TimerPeriodicIntHandler(sigval val);
-void LedTimerConfigNStart();
-void LedTimerDeinitStop();
+//void pushButtonInterruptHandler2(uint_least8_t index);
+//void pushButtonInterruptHandler3(uint_least8_t index);
+//void TimerPeriodicIntHandler(sigval val);
+//void LedTimerConfigNStart();
+//void LedTimerDeinitStop();
 static void DisplayBanner(char * AppName);
 void * MqttClient(void *pvParameters);
 void Mqtt_ClientStop(uint8_t disconnect);
@@ -236,6 +236,9 @@ const char *publish_data = { PUBLISH_TOPIC0_DATA };
 mqd_t g_PBQueue;
 pthread_t mqttThread = (pthread_t) NULL;
 pthread_t appThread = (pthread_t) NULL;
+
+pthread_t timerThread = (pthread_t) NULL;
+
 timer_t g_timer;
 
 /* Printing new line                                                         */
@@ -364,6 +367,9 @@ void pushButtonInterruptHandler2(uint_least8_t index)
 
     queueElement.event = PUBLISH_PUSH_BUTTON_PRESSED;
     queueElement.msgPtr = NULL;
+    queueElement.rovStatus = 0;
+    queueElement.rovDestination = 0;
+    queueElement.rovTime = 0;
 
     /* write message indicating publish message                             */
     if(MQTT_SendMsgToQueue(&queueElement))
@@ -400,76 +406,6 @@ void pushButtonInterruptHandler3(uint_least8_t index)
                    NULL);
         MQTT_SendMsgToQueue(&queueElement);
     }
-}
-
-//*****************************************************************************
-//
-//! Periodic Timer Interrupt Handler
-//!
-//! \param None
-//!
-//! \return None
-//
-//*****************************************************************************
-void TimerPeriodicIntHandler(sigval val)
-{
-    /* Increment our interrupt counter.                                      */
-    g_usTimerInts++;
-
-    if(!(g_usTimerInts & 0x1))
-    {
-        /* Turn Led Off                                                      */
-        GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_OFF);
-    }
-    else
-    {
-        /* Turn Led On                                                       */
-        GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_ON);
-    }
-}
-
-//*****************************************************************************
-//
-//! Function to configure and start timer to blink the LED while device is
-//! trying to connect to an AP
-//!
-//! \param none
-//!
-//! return none
-//
-//*****************************************************************************
-void LedTimerConfigNStart()
-{
-    struct itimerspec value;
-    sigevent sev;
-
-    /* Create Timer                                                          */
-    sev.sigev_notify = SIGEV_SIGNAL;
-    sev.sigev_notify_function = &TimerPeriodicIntHandler;
-    timer_create(2, &sev, &g_timer);
-
-    /* start timer                                                           */
-    value.it_interval.tv_sec = 0;
-    value.it_interval.tv_nsec = TIMER_EXPIRATION_VALUE;
-    value.it_value.tv_sec = 0;
-    value.it_value.tv_nsec = TIMER_EXPIRATION_VALUE;
-
-    timer_settime(g_timer, 0, &value, NULL);
-}
-
-//*****************************************************************************
-//
-//! Disable the LED blinking Timer as Device is connected to AP
-//!
-//! \param none
-//!
-//! return none
-//
-//*****************************************************************************
-void LedTimerDeinitStop()
-{
-    /* Disable the LED blinking Timer as Device is connected to AP.          */
-    timer_delete(g_timer);
 }
 
 //*****************************************************************************
@@ -515,6 +451,73 @@ void * MqttClientThread(void * pvParameters)
 
     return(NULL);
 }
+
+
+
+
+
+
+
+
+void * roverSim(void *pvParameters)//RRR
+{
+
+    struct msgQueue queueElement;
+
+    queueElement.event = PUBLISH_PUSH_BUTTON_PRESSED;
+    queueElement.msgPtr = NULL;
+    queueElement.rovStatus = 0;
+    queueElement.rovDestination = 0;
+    queueElement.rovTime = 0;
+
+    Timer_Handle timer0;
+    Timer_Params params;
+
+    /* Call driver init functions */
+    Timer_init();
+
+
+    /* Setting up the timer in continuous callback mode that calls the callback
+     * function every 1,000,000 microseconds, or 1 second.
+     */
+    Timer_Params_init(&params);
+    params.period = 3000000;
+    params.periodUnits = Timer_PERIOD_US;
+
+    timer0 = Timer_open(CONFIG_TIMER_0, &params);
+
+    if (timer0 == NULL) {
+        /* Failed to initialized timer */
+        while (1) {}
+    }
+
+    if (Timer_start(timer0) == Timer_STATUS_ERROR) {
+        /* Failed to start timer */
+        while (1) {}
+    }
+
+
+
+    while(1){
+
+        queueElement.rovStatus = queueElement.rovStatus + 1;
+        queueElement.rovDestination = queueElement.rovDestination + 2;
+        queueElement.rovTime = queueElement.rovTime + 3;
+        /* write message indicating publish message                             */
+       if(MQTT_SendMsgToQueue(&queueElement))
+       {
+           UART_PRINT("\n\n\rQueue is full\n\n\r");
+       }
+
+        if (Timer_start(timer0) == Timer_STATUS_ERROR) {
+            /* Failed to start timer */
+            while (1) {}
+        }
+
+    }
+
+}
+
 
 //*****************************************************************************
 //
@@ -575,7 +578,7 @@ void * MqttClient(void *pvParameters)
 
             //char pub_data[] = "{\"id\": \"rover\", \n\"pub\": 1, \n\"rec\": 2, \n\"status\": 10, \n\"atDestination\": 10, \n\"time\": 10\n}";
             char pub_data[50];
-            sprintf(pub_data, "{\"id\": \"%s\", \n\"pub\": %d, \n\"rec\": %d, \n\"status\": 10, \n\"atDestination\": 10, \n\"time\": 10\n}", BOARD_ID, published, recieved);
+            sprintf(pub_data, "{\"id\": \"%s\", \n\"pub\": %d, \n\"rec\": %d, \n\"status\": %d, \n\"atDestination\": %d, \n\"time\": %d\n}", BOARD_ID, published, recieved, queueElemRecv.rovStatus, queueElemRecv.rovDestination, queueElemRecv.rovTime);
 
 
             lRetVal =
@@ -607,17 +610,17 @@ void * MqttClient(void *pvParameters)
             if(strncmp
                 (tmpBuff, SUBSCRIPTION_TOPIC1, queueElemRecv.topLen) == 0)
             {
-                GPIO_toggle(CONFIG_GPIO_LED_0);
+                //GPIO_toggle(CONFIG_GPIO_LED_0);
             }
             else if(strncmp(tmpBuff, SUBSCRIPTION_TOPIC2,
                             queueElemRecv.topLen) == 0)
             {
-                GPIO_toggle(CONFIG_GPIO_LED_1);
+                //GPIO_toggle(CONFIG_GPIO_LED_1);
             }
             else if(strncmp(tmpBuff, SUBSCRIPTION_TOPIC3,
                             queueElemRecv.topLen) == 0)
             {
-                GPIO_toggle(CONFIG_GPIO_LED_2);
+                //GPIO_toggle(CONFIG_GPIO_LED_2);
             }
 
             free(queueElemRecv.msgPtr);
@@ -678,9 +681,9 @@ int32_t Mqtt_IF_Connect()
     /*Display Application Banner                                             */
     DisplayBanner(APPLICATION_NAME);
 
-    GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_OFF);
-    GPIO_write(CONFIG_GPIO_LED_1, CONFIG_GPIO_LED_OFF);
-    GPIO_write(CONFIG_GPIO_LED_2, CONFIG_GPIO_LED_OFF);
+    //GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_OFF);
+    //GPIO_write(CONFIG_GPIO_LED_1, CONFIG_GPIO_LED_OFF);
+    //GPIO_write(CONFIG_GPIO_LED_2, CONFIG_GPIO_LED_OFF);
 
     /*Reset The state of the machine                                         */
     Network_IF_ResetMCUStateMachine();
@@ -694,10 +697,10 @@ int32_t Mqtt_IF_Connect()
     }
 
     /*switch on CONFIG_GPIO_LED_2 to indicate Simplelink is properly up.       */
-    GPIO_write(CONFIG_GPIO_LED_2, CONFIG_GPIO_LED_ON);
+    //GPIO_write(CONFIG_GPIO_LED_2, CONFIG_GPIO_LED_ON);
 
     /*Start Timer to blink CONFIG_GPIO_LED_0 till AP connection                */
-    LedTimerConfigNStart();
+    //LedTimerConfigNStart();
 
     /*Initialize AP security params                                          */
     SecurityParams.Key = (signed char *) SECURITY_KEY;
@@ -713,16 +716,16 @@ int32_t Mqtt_IF_Connect()
     }
 
     /*Disable the LED blinking Timer as Device is connected to AP.           */
-    LedTimerDeinitStop();
+    //LedTimerDeinitStop();
 
     /*Switch ON CONFIG_GPIO_LED_0 to indicate that Device acquired an IP.      */
-    GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_ON);
+    //GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_ON);
 
-    sleep(1);
+    //sleep(1);
 
-    GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_OFF);
-    GPIO_write(CONFIG_GPIO_LED_1, CONFIG_GPIO_LED_OFF);
-    GPIO_write(CONFIG_GPIO_LED_2, CONFIG_GPIO_LED_OFF);
+    //GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_OFF);
+    //GPIO_write(CONFIG_GPIO_LED_1, CONFIG_GPIO_LED_OFF);
+    //GPIO_write(CONFIG_GPIO_LED_2, CONFIG_GPIO_LED_OFF);
 
     return(0);
 }
@@ -777,6 +780,14 @@ void Mqtt_start()
     {
         gInitState &= ~MQTT_INIT_STATE;
         UART_PRINT("MQTT thread create fail\n\r");
+        return;
+    }
+
+    retc = pthread_create(&timerThread, &pAttrs, roverSim, (void *) &threadArg);//RRR
+    if(retc != 0)
+    {
+        gInitState &= ~MQTT_INIT_STATE;
+        UART_PRINT("timer thread create fail\n\r");
         return;
     }
 
