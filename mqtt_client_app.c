@@ -72,6 +72,9 @@
 /* Common interface includes                                                 */
 #include "network_if.h"
 #include "uart_term.h"
+#include "cJSON.h"
+#include "jsmn.h"
+#include "json_parse.h"
 
 #include "debug.h" //RRR
 
@@ -479,6 +482,35 @@ static void DisplayBanner(char * AppName)
     UART_PRINT("\t\t    CC32xx %s Application       \n\r", AppName);
     UART_PRINT("\t\t *************************************************\n\r");
     UART_PRINT("\n\n\n\r");
+
+
+//===================================== FOR TESTING PURPOSES ==============================================
+
+    // Test Input
+
+
+    char *arm_json = "{ \"id\": 1, \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": 5}\n\r";
+    char *rover_json = "{ \"id\": 1, \"pub\": 2675, \"rec\": 3, \"time\": 4, \"distance\": 5 \"atDestination\": 1}\n\r";
+    char *pixy_json = "{ \"id\": 1, \"pub\": 2675, \"rec\": 3, \"time\": 4, \"x_coordinate\": 0, \"y_coordinate\": 78, \"height\": 63, \"width\": 3, \"signature\": 232}\n\r";
+    char *incorrect_size_json = "{ \"id\": 1, \"pub\": 2675, \"rec\": 3, \"time\": 4, \"x_coordinate\": 0, \"y_coordinate\": 78, \"height\": 63, \"width\": 3, \"signature\": 232, \"asdf\": 2}\n\r";
+
+    UART_PRINT("ARM INPUT MESSAGE (JSON): %s", arm_json);
+
+    dev_data d = getJSONData(arm_json);
+    printDevData(d);
+
+    UART_PRINT("ROVER INPUT MESSAGE (JSON): %s", rover_json);
+    d = getJSONData(rover_json);
+    printDevData(d);
+
+    UART_PRINT("PIXY INPUT MESSAGE (JSON): %s", pixy_json);
+    d = getJSONData(pixy_json);
+    printDevData(d);
+
+    UART_PRINT("INCORRECT LENGTH INPUT MESSAGE (JSON): %s", incorrect_size_json);
+    d = getJSONData(incorrect_size_json);
+    printDevData(d);
+// =========================================================================================================
 }
 
 void * MqttClientThread(void * pvParameters)
