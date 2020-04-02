@@ -22,7 +22,7 @@ typedef struct dev_data {
     int signature;
 
     char* status; // ultra and arm
-    bool atDestination; // rover
+    char* atDestination; // rover
 
     char* topic1;
     char* topic2;

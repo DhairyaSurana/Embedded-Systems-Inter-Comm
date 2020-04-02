@@ -32,12 +32,7 @@ void printDevData(dev_data d) {
     UART_PRINT("\r\n");
 
     UART_PRINT("    atDestination: ");
-
-    if(d.atDestination)
-        UART_PRINT("true");
-    else
-        UART_PRINT("false");
-
+    UART_PRINT("%s", d.atDestination);
     UART_PRINT("\r\n");
 
     UART_PRINT("    x: ");
@@ -93,7 +88,6 @@ int getIntValue(cJSON *obj, char *field) {
 }
 
 char *getStrValue(cJSON *obj, char *field) {
-
     return cJSON_GetObjectItemCaseSensitive(obj, field)->valuestring;
 }
 
@@ -103,7 +97,7 @@ struct dev_data getJSONData(char *str) {
     cJSON *json_obj = cJSON_Parse(str);
 
     // initialize struct
-    dev_data d_data = {"None", -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, "None", false, "None", "None", "None", "None"};
+    dev_data d_data = {"None", -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, "None", "false", "None", "None", "None", "None"};
 
     d_data.id = getStrValue(json_obj, "id");
     d_data.pub = getIntValue(json_obj, "pub");
@@ -138,7 +132,7 @@ struct dev_data getJSONData(char *str) {
 
                 d_data.time = getIntValue(json_obj, "time");
                 d_data.status = getStrValue(json_obj, "status");
-                d_data.atDestination = getIntValue(json_obj, "atDestination");
+                d_data.atDestination = getStrValue(json_obj, "atDestination");
 
                 cJSON_Delete(json_obj);
                 return d_data;
@@ -171,12 +165,17 @@ struct dev_data getJSONData(char *str) {
 
         else {
 
-            UART_PRINT("ERROR: id not recognized\r\n");
-            dev_data null_data = {"None", -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, "None", false, "None", "None", "None", "None"};
+            d_data.id = "rover";
 
+            d_data.time = getIntValue(json_obj, "time");
+            d_data.status = getStrValue(json_obj, "status");
+            d_data.atDestination = getStrValue(json_obj, "atDestination");
+            d_data.id = getStrValue(json_obj, "id");
+                d_data.pub = getIntValue(json_obj, "pub");
+                d_data.rec = getIntValue(json_obj, "rec");
 
             cJSON_Delete(json_obj);
-            return null_data;
+            return d_data;
         }
 
 }
