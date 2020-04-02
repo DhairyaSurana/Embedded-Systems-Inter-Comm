@@ -55,7 +55,7 @@
 #include <mqueue.h>
 #include <time.h>
 #include <unistd.h>
-
+#include<stdio.h>
 /* TI-Driver includes                                                        */
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/SPI.h>
@@ -74,6 +74,7 @@
 #include "uart_term.h"
 
 #include "debug.h" //RRR
+#include "jsmn.h"
 
 /* TI-DRIVERS Header files */
 #include "ti_drivers_config.h"
@@ -131,9 +132,12 @@
 #define SUBSCRIPTION_TOPIC3      "/cc3200/ToggleLEDCmdL3"
 
 /* Defining Publish Topic Values                                             */
-#define PUBLISH_TOPIC0           "/cc32xx/ButtonPressEvtSw2"
+#define PUBLISH_TOPIC0           "rover"
 #define PUBLISH_TOPIC0_DATA \
-    "Push Button SW2 has been pressed on CC32xx device"
+    "{\"id\": \"rover\", \n\"pub\": 1, \n\"rec\": 2, \n\"status\": 10, \n\"atDestination\": 10, \n\"time\": 10\n}"
+
+//#define PUBLISH_TOPIC0_DATA \
+//    "{\"distance\": 9\n}"
 
 /* Spawn task priority and Task and Thread Stack Size                        */
 #define TASKSTACKSIZE            2048
@@ -187,6 +191,11 @@ int32_t MQTT_SendMsgToQueue(struct msgQueue *queueElement);
 //*****************************************************************************
 
 /* Connection state: (0) - connected, (negative) - disconnected              */
+int32_t published = 0;//RRR
+int32_t recieved = 0;//RRR
+#define BOARD_ID "rover"
+
+
 int32_t gApConnectionState = -1;
 uint32_t gInitState = 0;
 uint32_t memPtrCounterfree = 0;
@@ -559,18 +568,29 @@ void * MqttClient(void *pvParameters)
         switch(queueElemRecv.event)
         {
         case PUBLISH_PUSH_BUTTON_PRESSED:
+            published = published+1;
             dbgOutputLoc(DBG_MqttClient_PUBLISH);
             /*send publish message                                       */
+
+
+            //char pub_data[] = "{\"id\": \"rover\", \n\"pub\": 1, \n\"rec\": 2, \n\"status\": 10, \n\"atDestination\": 10, \n\"time\": 10\n}";
+            char pub_data[50];
+            sprintf(pub_data, "{\"id\": \"%s\", \n\"pub\": %d, \n\"rec\": %d, \n\"status\": 10, \n\"atDestination\": 10, \n\"time\": 10\n}", BOARD_ID, published, recieved);
+
+
             lRetVal =
                 MQTTClient_publish(gMqttClient, (char*) publish_topic, strlen(
                                       (char*)publish_topic),
-                                  (char*)publish_data,
-                                  strlen((char*) publish_data), MQTT_QOS_2 |
+                                      pub_data,
+                                  strlen(pub_data), MQTT_QOS_2 |
                                   ((RETAIN_ENABLE) ? MQTT_PUBLISH_RETAIN : 0));
+
+
+
 
             UART_PRINT("\n\r CC3200 Publishes the following message \n\r");
             UART_PRINT("Topic: %s\n\r", publish_topic);
-            UART_PRINT("Data: %s\n\r", publish_data);
+            UART_PRINT("Data: %s\n\r", pub_data);
 
             /* Clear and enable again the SW2 interrupt */
             GPIO_clearInt(CONFIG_GPIO_BUTTON_0);     // SW2
@@ -582,6 +602,7 @@ void * MqttClient(void *pvParameters)
         /*subscribed by local client)                                */
         case MSG_RECV_BY_CLIENT:
             dbgOutputLoc(DBG_MqttClient_RECIEVE);
+            recieved = recieved+1;
             tmpBuff = (char *) ((char *) queueElemRecv.msgPtr + 12);
             if(strncmp
                 (tmpBuff, SUBSCRIPTION_TOPIC1, queueElemRecv.topLen) == 0)
