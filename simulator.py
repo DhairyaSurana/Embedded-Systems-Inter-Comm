@@ -3,9 +3,6 @@ import paho.mqtt.client as mqtt
 import json
 from collections import defaultdict
 
-def on_connect(client, userdata, flags, rc):
-    print('Connected with result code', str(rc))
-
 def on_publish(client,userdata,result):             #create function for callback
     print('Data published with ret code: ' + str(result))
 
@@ -16,14 +13,18 @@ password = 'kc'
 
 client = mqtt.Client('simulator')
 client.username_pw_set(user, password=password)
-client.on_connect = on_connect
 client.on_publish = on_publish
 
 client.connect(broker_address, port=port)
 
-ret =  client.publish("ultra", "New test pub from script")
-
-print('Published: ' + 'Test pub from script' + ' | to topic: ' + 'ultra' + ' | with code: ' + str(ret))
+ret =  client.publish("topics", "{\"id\": \"pixy\", \"pub\": 1, \"rec\": 0, \"t1\": \"\", \"t2\": \"\", \"t3\": \"\", \"t4\": \"\"}")
+time.sleep(1)
+ret =  client.publish("topics", "{\"id\": \"rover\", \"pub\": 1, \"rec\": 0, \"t1\": \"pixy\", \"t2\": \"ultra\", \"t3\": \"arm\", \"t4\": \"\"}")
+time.sleep(1)
+ret =  client.publish("topics", "{\"id\": \"ultra\", \"pub\": 1, \"rec\": 0, \"t1\": \"\", \"t2\": \"\", \"t3\": \"\", \"t4\": \"\"}")
+time.sleep(1)
+ret =  client.publish("topics", "{\"id\": \"arm\", \"pub\": 1, \"rec\": 0, \"t1\": \"pixy\", \"t2\": \"rover\", \"t3\": \"\", \"t4\": \"\"}")
+time.sleep(1)
 
 print("End of script")
 
