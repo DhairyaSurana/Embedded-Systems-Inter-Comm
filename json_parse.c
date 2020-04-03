@@ -56,7 +56,7 @@ int getIntValue(cJSON *obj, char *field) {
 char *getStrValue(cJSON *obj, char *field) {
 
     cJSON *val_obj = cJSON_GetObjectItemCaseSensitive(obj, field);
-    return (val_obj != NULL) ? val_obj->valuestring : "NOT FOUND";
+    return (val_obj != NULL) ? val_obj->valuestring : "None";
 }
 
 
@@ -65,6 +65,7 @@ struct dev_data getJSONData(char *str) {
 
     // initialize struct
     dev_data d_data = {"None", -1, -1, -1, -1, -1, -1, -1, -1, -1, "None", "false", "None", "None", "None", "None"};
+
     cJSON *json_obj = cJSON_Parse(str);
 
     int size = cJSON_GetArraySize(json_obj);
@@ -77,10 +78,10 @@ struct dev_data getJSONData(char *str) {
     d_data.pub = getIntValue(json_obj, "pub");
     d_data.rec = getIntValue(json_obj, "rec");
 
-    UART_PRINT("ID: %s\r\n", d_data.id);
-    UART_PRINT("SIZE: %d\r\n", size);
+//    UART_PRINT("ID: %s\r\n", d_data.id);
+//    UART_PRINT("SIZE: %d\r\n", size);
 
-        if(strcmp(d_data.id, "ultra") == 0) {
+        if(strcmp(d_data.id, "ultra") == 0) { // ultra
 
                 d_data.time = getIntValue(json_obj, "time");
                 d_data.dist = getIntValue(json_obj, "distance");
@@ -88,7 +89,7 @@ struct dev_data getJSONData(char *str) {
 
         }
 
-        else if(strcmp(d_data.id, "arm") == 0) {
+        else if(strcmp(d_data.id, "arm") == 0) { // arm
 
                 d_data.time = getIntValue(json_obj, "time");
                 d_data.status = getStrValue(json_obj, "status");
@@ -125,18 +126,14 @@ struct dev_data getJSONData(char *str) {
 
         }
 
-        else {
+        else {  // Invalid ID error
 
-            d_data.id = "rover";
-
-            d_data.time = getIntValue(json_obj, "time");
-            d_data.status = getStrValue(json_obj, "status");
-            d_data.atDestination = getStrValue(json_obj, "atDestination");
-            d_data.id = getStrValue(json_obj, "id");
-                d_data.pub = getIntValue(json_obj, "pub");
-                d_data.rec = getIntValue(json_obj, "rec");
-
+           UART_PRINT("ERROR: id not recognized.\r\n");
+           d_data.id = "None";
+           d_data.pub = -1;
+           d_data.rec = -1;
         }
+
 
         cJSON_Delete(json_obj);
         return d_data;
