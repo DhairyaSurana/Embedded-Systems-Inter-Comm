@@ -7,84 +7,54 @@ void printDevData(dev_data d) {
 
     UART_PRINT("DEVICE STRUCT {\r\n\r\n");
 
-    UART_PRINT("    id: ");
-    UART_PRINT("%s", d.id);
-    UART_PRINT("\r\n");
+    UART_PRINT("    id: %s\r\n", d.id);
+    UART_PRINT("    pub: %d\r\n", d.pub);
+    UART_PRINT("    rec: %d\r\n", d.rec);
+    UART_PRINT("    time: %d\r\n", d.time);
 
-    UART_PRINT("    pub: ");
-    UART_PRINT("%d", d.pub);
-    UART_PRINT("\r\n");
+    if(strcmp(d.id, "ultra") == 0)
+        UART_PRINT("    distance: %d\r\n", d.dist);
 
-    UART_PRINT("    rec: ");
-    UART_PRINT("%d", d.rec);
-    UART_PRINT("\r\n");
+    if(strcmp(d.id, "arm") == 0 || strcmp(d.id, "rover") == 0)
+        UART_PRINT("    status: %s\r\n", d.status);
 
-    UART_PRINT("    time: ");
-    UART_PRINT("%d", d.time);
-    UART_PRINT("\r\n");
+    if(strcmp(d.id, "rover") == 0)
+        UART_PRINT("    atDestination: %s\r\n", d.atDestination);
 
-    UART_PRINT("    status: ");
-    UART_PRINT("%s", d.status);
-    UART_PRINT("\r\n");
+    if(strcmp(d.id, "pixy") == 0) {
 
-    UART_PRINT("    atDestination: ");
-    UART_PRINT("%s", d.atDestination);
-    UART_PRINT("\r\n");
+        UART_PRINT("    x: %d\r\n", d.x);
+        UART_PRINT("    y: %d\r\n", d.y);
+        UART_PRINT("    width: %d\r\n", d.width);
+        UART_PRINT("    height: %d\r\n", d.height);
+        UART_PRINT("    signature:  %d\r\n", d.signature);
+    }
 
-    UART_PRINT("    x: ");
-    UART_PRINT("%d", d.x);
-    UART_PRINT("\r\n");
+    if(strcmp(d.id, "topic") == 0) {
 
-    UART_PRINT("    y: ");
-    UART_PRINT("%d", d.y);
-    UART_PRINT("\r\n");
+        UART_PRINT("    topic1:  %s\r\n", d.topic1);
+        UART_PRINT("    topic2:  %s\r\n", d.topic2);
+        UART_PRINT("    topic3:  %s\r\n", d.topic3);
+        UART_PRINT("    topic4:  %s\r\n", d.topic4);
 
-    UART_PRINT("    width: ");
-    UART_PRINT("%d", d.width);
-    UART_PRINT("\r\n");
-
-    UART_PRINT("    height: ");
-    UART_PRINT("%d", d.height);
-    UART_PRINT("\r\n");
-
-
-    UART_PRINT("    distance: ");
-    UART_PRINT("%d", d.dist);
-    UART_PRINT("\r\n");
-
-    UART_PRINT("    signature: ");
-    UART_PRINT("%d", d.signature);
-    UART_PRINT("\r\n");
-
-    UART_PRINT("    topic1: ");
-    UART_PRINT("%s", d.topic1);
-    UART_PRINT("\r\n");
-
-    UART_PRINT("    topic2: ");
-    UART_PRINT("%s", d.topic2);
-    UART_PRINT("\r\n");
-
-    UART_PRINT("    topic3: ");
-    UART_PRINT("%s", d.topic3);
-    UART_PRINT("\r\n");
-
-    UART_PRINT("    topic4: ");
-    UART_PRINT("%s", d.topic4);
-
+    }
 
     UART_PRINT("\r\n}\r\n");
 
 }
 
+
 /* Wrapper for cJSON_GetObjectItemCaseSensitive function*/
 int getIntValue(cJSON *obj, char *field) {
 
-    int val = cJSON_GetObjectItemCaseSensitive(obj, field)->valueint;
-    return (val != 64943) ? val : -1;       // -1 indicates values not found
+    cJSON *val_obj = cJSON_GetObjectItemCaseSensitive(obj, field);
+    return (val_obj != NULL) ? val_obj->valueint : -1;       // -1 indicates value not found
 }
 
 char *getStrValue(cJSON *obj, char *field) {
-    return cJSON_GetObjectItemCaseSensitive(obj, field)->valuestring;
+
+    cJSON *val_obj = cJSON_GetObjectItemCaseSensitive(obj, field);
+    return (val_obj != NULL) ? val_obj->valuestring : "NOT FOUND";
 }
 
 
@@ -104,8 +74,6 @@ struct dev_data getJSONData(char *str) {
     d_data.id = getStrValue(json_obj, "id");
     d_data.pub = getIntValue(json_obj, "pub");
     d_data.rec = getIntValue(json_obj, "rec");
-
-
 
     UART_PRINT("ID: %s\r\n", d_data.id);
     UART_PRINT("SIZE: %d\r\n", size);

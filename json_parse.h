@@ -8,6 +8,7 @@ typedef struct dev_data {
     char* id;
     int pub;
     int rec;
+
     int time;
 
     // ultra

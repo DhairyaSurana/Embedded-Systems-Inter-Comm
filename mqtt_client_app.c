@@ -482,45 +482,52 @@ static void DisplayBanner(char * AppName)
     UART_PRINT("\t\t *************************************************\n\r");
     UART_PRINT("\n\n\n\r");
 
+}
 
-//===================================== FOR TESTING PURPOSES ==============================================
+static void runTestCases() {
 
-    // Test Input
-
-
-    char *arm_json = "{\"id\": \"arm\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"asdf\"}\n\r";
-    char *rover_json = "{ \"id\": \"rover\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"distance\": 5, \"atDestination\": \"false\"}\n\r";
-    char *pixy_json = "{ \"id\": \"pixy\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"x_coordinate\": 0, \"y_coordinate\": 78, \"height\": 63, \"width\": 3, \"signature\": 232}\n\r";
+   char *ultra_json =  "{\"id\": \"ultra\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"distance\": 45}\n\r";
+   char *arm_json = "{\"id\": \"arm\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"yeet\"}\n\r";
+   char *rover_json = "{ \"id\": \"rover\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"skrrt\", \"atDestination\": \"false\"}\n\r";
+   char *pixy_json = "{ \"id\": \"pixy\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"x_coordinate\": 0, \"y_coordinate\": 78, \"height\": 63, \"width\": 3, \"signature\": 232}\n\r";
 //    char *incorrect_size_json = "{ \"id\": \"pixy\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"x_coordinate\": 0, \"y_coordinate\": 78, \"height\": 63, \"width\": 3, \"signature\": 232, \"asdf\": 2}\n\r";
 
-    // Error-handling
-    char *imp_form_json = "\"id\": \"arm\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"asdf\"}\n\r";
-    char *empty_json = "{}\r\n";
+   // Error-handling
+   char *imp_form_json = "\"id\": \"arm\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"asdf\"}\n\r";
+   char *empty_json = "{}\r\n";
+   char *no_id_json = "{ \"pub\": 2675, \"rec\": 3, \"time\": 4, \"distance\": 5, \"atDestination\": \"false\"}\n\r";
 
-    UART_PRINT("ARM INPUT MESSAGE (JSON): %s", arm_json);
-    dev_data d = getJSONData(arm_json);
-    printDevData(d);
+   UART_PRINT("ULTRA INPUT MESSAGE (JSON): %s", ultra_json);
+   dev_data d = getJSONData(ultra_json);
+   printDevData(d);
 
-    UART_PRINT("ROVER INPUT MESSAGE (JSON): %s", rover_json);
-    d = getJSONData(rover_json);
-    printDevData(d);
+   UART_PRINT("ARM INPUT MESSAGE (JSON): %s", arm_json);
+   d = getJSONData(arm_json);
+   printDevData(d);
 
-    UART_PRINT("PIXY INPUT MESSAGE (JSON): %s", pixy_json);
-    d = getJSONData(pixy_json);
-    printDevData(d);
+   UART_PRINT("ROVER INPUT MESSAGE (JSON): %s", rover_json);
+   d = getJSONData(rover_json);
+   printDevData(d);
 
-    UART_PRINT("IMPROPER FORMAT MESSAGE (JSON): %s", imp_form_json);
-    d = getJSONData(imp_form_json);
-    printDevData(d);
+   UART_PRINT("PIXY INPUT MESSAGE (JSON): %s", pixy_json);
+   d = getJSONData(pixy_json);
+   printDevData(d);
 
-    UART_PRINT("EMPTY MESSAGE (JSON): %s", empty_json);
-    d = getJSONData(empty_json);
-    printDevData(d);
+   UART_PRINT("IMPROPER FORMAT MESSAGE (JSON): %s", imp_form_json);
+   d = getJSONData(imp_form_json);
+   printDevData(d);
+
+   UART_PRINT("EMPTY MESSAGE (JSON): %s", empty_json);
+   d = getJSONData(empty_json);
+   printDevData(d);
+
+   UART_PRINT("NO ID (JSON): %s", no_id_json);
+   d = getJSONData(no_id_json);
+   printDevData(d);
 
 //    UART_PRINT("INCORRECT LENGTH INPUT MESSAGE (JSON): %s", incorrect_size_json);
 //    d = getJSONData(incorrect_size_json);
 //    printDevData(d);
-// =========================================================================================================
 }
 
 void * MqttClientThread(void * pvParameters)
@@ -698,6 +705,8 @@ int32_t Mqtt_IF_Connect()
 
     /*Display Application Banner                                             */
     DisplayBanner(APPLICATION_NAME);
+
+    runTestCases();
 
     GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_OFF);
     GPIO_write(CONFIG_GPIO_LED_1, CONFIG_GPIO_LED_OFF);
