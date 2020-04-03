@@ -493,7 +493,7 @@ static void runTestCases() {
    char *rover_json = "{ \"id\": \"rover\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"skrrt\", \"atDestination\": \"false\"}\n\r";
    char *pixy_json = "{ \"id\": \"pixy\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"x_coordinate\": 0, \"y_coordinate\": 78, \"height\": 63, \"width\": 3, \"signature\": 232}\n\r";
    char *topic_json= "{\"id\": \"topics\", \"pub\": 2675, \"rec\": 3, \"topic1\": \"asdf\", \"topic2\": \"yeet\", \"topic3\": \"ffff\", \"topic4\": \"ffdf\"}\n\r";
-   //    char *incorrect_size_json = "{ \"id\": \"pixy\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"x_coordinate\": 0, \"y_coordinate\": 78, \"height\": 63, \"width\": 3, \"signature\": 232, \"asdf\": 2}\n\r";
+   char *stat_json = "{\"id\": \"statistics\", \"pub\": 2675, \"rec\": 3}\n\r";
 
    // Error-handling
    char *imp_form_json = "\"id\": \"arm\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"asdf\"}\n\r";
@@ -502,24 +502,28 @@ static void runTestCases() {
    char *inval_id_json = "{\"id\": \"asdfadfdasdf\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"asdf\"}\n\r";
 
 
-   UART_PRINT("ULTRA INPUT MESSAGE: %s", ultra_json);
+   UART_PRINT("ULTRA MESSAGE: %s", ultra_json);
    dev_data d = getJSONData(ultra_json);
    printDevData(d);
 
-   UART_PRINT("ARM INPUT MESSAGE: %s", arm_json);
+   UART_PRINT("ARM MESSAGE: %s", arm_json);
    d = getJSONData(arm_json);
    printDevData(d);
 
-   UART_PRINT("ROVER INPUT MESSAGE: %s", rover_json);
+   UART_PRINT("ROVER MESSAGE: %s", rover_json);
    d = getJSONData(rover_json);
    printDevData(d);
 
-   UART_PRINT("PIXY INPUT MESSAGE: %s", pixy_json);
+   UART_PRINT("PIXY MESSAGE: %s", pixy_json);
    d = getJSONData(pixy_json);
    printDevData(d);
 
-   UART_PRINT("TOPIC INPUT MESSAGE: %s", topic_json);
+   UART_PRINT("TOPICS MESSAGE: %s", topic_json);
    d = getJSONData(topic_json);
+   printDevData(d);
+
+   UART_PRINT("STATISTICS MESSAGE: %s", stat_json);
+   d = getJSONData(stat_json);
    printDevData(d);
 
    UART_PRINT("IMPROPERLY FORMATTED MESSAGE: %s", imp_form_json);
@@ -537,11 +541,6 @@ static void runTestCases() {
    UART_PRINT("WRONG ID MESSAGE: %s", inval_id_json);
    d = getJSONData(inval_id_json);
    printDevData(d);
-
-
-//    UART_PRINT("INCORRECT LENGTH INPUT MESSAGE (JSON): %s", incorrect_size_json);
-//    d = getJSONData(incorrect_size_json);
-//    printDevData(d);
 
    UART_PRINT("=======================================================================================================================================\r\n\r\n");
 }

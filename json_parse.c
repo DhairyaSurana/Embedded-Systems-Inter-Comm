@@ -11,20 +11,25 @@ void printDevData(dev_data d) {
     UART_PRINT("    pub: %d\r\n", d.pub);
     UART_PRINT("    rec: %d\r\n", d.rec);
 
-    if(strcmp(d.id, "topics") != 0)
-        UART_PRINT("    time: %d\r\n", d.time);
-
-    if(strcmp(d.id, "ultra") == 0)
+    if(strcmp(d.id, "ultra") == 0) {
         UART_PRINT("    distance: %d\r\n", d.dist);
+        UART_PRINT("    time: %d\r\n", d.time);
+    }
 
-    if(strcmp(d.id, "arm") == 0 || strcmp(d.id, "rover") == 0)
+    if(strcmp(d.id, "arm") == 0) {
         UART_PRINT("    status: %s\r\n", d.status);
+        UART_PRINT("    time: %d\r\n", d.time);
+    }
 
-    if(strcmp(d.id, "rover") == 0)
+    if(strcmp(d.id, "rover") == 0) {
         UART_PRINT("    atDestination: %s\r\n", d.atDestination);
+        UART_PRINT("    status: %s\r\n", d.status);
+        UART_PRINT("    time: %d\r\n", d.time);
+    }
 
     if(strcmp(d.id, "pixy") == 0) {
 
+        UART_PRINT("    time: %d\r\n", d.time);
         UART_PRINT("    x: %d\r\n", d.x);
         UART_PRINT("    y: %d\r\n", d.y);
         UART_PRINT("    width: %d\r\n", d.width);
@@ -126,7 +131,7 @@ struct dev_data getJSONData(char *str) {
 
         }
 
-        else {  // Invalid ID error
+        else if(strcmp(d_data.id, "statistics") != 0){  // Invalid ID error
 
            UART_PRINT("ERROR: id not recognized.\r\n");
            d_data.id = "None";
