@@ -486,11 +486,14 @@ static void DisplayBanner(char * AppName)
 
 static void runTestCases() {
 
+   UART_PRINT("================================================= TEST CASES ==========================================================================\r\n\r\n");
+
    char *ultra_json =  "{\"id\": \"ultra\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"distance\": 45}\n\r";
    char *arm_json = "{\"id\": \"arm\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"yeet\"}\n\r";
    char *rover_json = "{ \"id\": \"rover\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"skrrt\", \"atDestination\": \"false\"}\n\r";
    char *pixy_json = "{ \"id\": \"pixy\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"x_coordinate\": 0, \"y_coordinate\": 78, \"height\": 63, \"width\": 3, \"signature\": 232}\n\r";
-//    char *incorrect_size_json = "{ \"id\": \"pixy\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"x_coordinate\": 0, \"y_coordinate\": 78, \"height\": 63, \"width\": 3, \"signature\": 232, \"asdf\": 2}\n\r";
+   char *topic_json= "{\"id\": \"topics\", \"pub\": 2675, \"rec\": 3, \"topic1\": \"asdf\", \"topic2\": \"yeet\", \"topic3\": \"ffff\", \"topic4\": \"ffdf\"}\n\r";
+   //    char *incorrect_size_json = "{ \"id\": \"pixy\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"x_coordinate\": 0, \"y_coordinate\": 78, \"height\": 63, \"width\": 3, \"signature\": 232, \"asdf\": 2}\n\r";
 
    // Error-handling
    char *imp_form_json = "\"id\": \"arm\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"asdf\"}\n\r";
@@ -513,6 +516,10 @@ static void runTestCases() {
    d = getJSONData(pixy_json);
    printDevData(d);
 
+   UART_PRINT("TOPIC INPUT MESSAGE (JSON): %s", topic_json);
+   d = getJSONData(topic_json);
+   printDevData(d);
+
    UART_PRINT("IMPROPER FORMAT MESSAGE (JSON): %s", imp_form_json);
    d = getJSONData(imp_form_json);
    printDevData(d);
@@ -528,6 +535,8 @@ static void runTestCases() {
 //    UART_PRINT("INCORRECT LENGTH INPUT MESSAGE (JSON): %s", incorrect_size_json);
 //    d = getJSONData(incorrect_size_json);
 //    printDevData(d);
+
+   UART_PRINT("=======================================================================================================================================\r\n\r\n");
 }
 
 void * MqttClientThread(void * pvParameters)

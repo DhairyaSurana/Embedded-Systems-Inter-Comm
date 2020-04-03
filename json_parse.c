@@ -10,7 +10,9 @@ void printDevData(dev_data d) {
     UART_PRINT("    id: %s\r\n", d.id);
     UART_PRINT("    pub: %d\r\n", d.pub);
     UART_PRINT("    rec: %d\r\n", d.rec);
-    UART_PRINT("    time: %d\r\n", d.time);
+
+    if(strcmp(d.id, "topics") != 0)
+        UART_PRINT("    time: %d\r\n", d.time);
 
     if(strcmp(d.id, "ultra") == 0)
         UART_PRINT("    distance: %d\r\n", d.dist);
@@ -30,7 +32,7 @@ void printDevData(dev_data d) {
         UART_PRINT("    signature:  %d\r\n", d.signature);
     }
 
-    if(strcmp(d.id, "topic") == 0) {
+    if(strcmp(d.id, "topics") == 0) {
 
         UART_PRINT("    topic1:  %s\r\n", d.topic1);
         UART_PRINT("    topic2:  %s\r\n", d.topic2);
