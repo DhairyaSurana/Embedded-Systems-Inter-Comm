@@ -12,7 +12,6 @@ typedef struct dev_data {
 
     // ultra
     int dist;
-    int seq_num;
 
     // pixy
     int x;

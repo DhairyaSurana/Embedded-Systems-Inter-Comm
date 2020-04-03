@@ -488,13 +488,16 @@ static void DisplayBanner(char * AppName)
     // Test Input
 
 
-    char *arm_json = "{ \"id\": \"arm\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"asdf\"}\n\r";
-    char *rover_json = "{ \"id\": \"rover\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"distance\": 5 \"atDestination\": \"false\"}\n\r";
+    char *arm_json = "{\"id\": \"arm\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"asdf\"}\n\r";
+    char *rover_json = "{ \"id\": \"rover\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"distance\": 5, \"atDestination\": \"false\"}\n\r";
     char *pixy_json = "{ \"id\": \"pixy\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"x_coordinate\": 0, \"y_coordinate\": 78, \"height\": 63, \"width\": 3, \"signature\": 232}\n\r";
-    char *incorrect_size_json = "{ \"id\": \"pixy\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"x_coordinate\": 0, \"y_coordinate\": 78, \"height\": 63, \"width\": 3, \"signature\": 232, \"asdf\": 2}\n\r";
+//    char *incorrect_size_json = "{ \"id\": \"pixy\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"x_coordinate\": 0, \"y_coordinate\": 78, \"height\": 63, \"width\": 3, \"signature\": 232, \"asdf\": 2}\n\r";
+
+    // Error-handling
+    char *imp_form_json = "\"id\": \"arm\", \"pub\": 2675, \"rec\": 3, \"time\": 4, \"status\": \"asdf\"}\n\r";
+    char *empty_json = "{}\r\n";
 
     UART_PRINT("ARM INPUT MESSAGE (JSON): %s", arm_json);
-
     dev_data d = getJSONData(arm_json);
     printDevData(d);
 
@@ -506,9 +509,17 @@ static void DisplayBanner(char * AppName)
     d = getJSONData(pixy_json);
     printDevData(d);
 
-    UART_PRINT("INCORRECT LENGTH INPUT MESSAGE (JSON): %s", incorrect_size_json);
-    d = getJSONData(incorrect_size_json);
+    UART_PRINT("IMPROPER FORMAT MESSAGE (JSON): %s", imp_form_json);
+    d = getJSONData(imp_form_json);
     printDevData(d);
+
+    UART_PRINT("EMPTY MESSAGE (JSON): %s", empty_json);
+    d = getJSONData(empty_json);
+    printDevData(d);
+
+//    UART_PRINT("INCORRECT LENGTH INPUT MESSAGE (JSON): %s", incorrect_size_json);
+//    d = getJSONData(incorrect_size_json);
+//    printDevData(d);
 // =========================================================================================================
 }
 

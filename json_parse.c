@@ -19,10 +19,6 @@ void printDevData(dev_data d) {
     UART_PRINT("%d", d.rec);
     UART_PRINT("\r\n");
 
-    UART_PRINT("    seq_num: ");
-    UART_PRINT("%d", d.seq_num);
-    UART_PRINT("\r\n");
-
     UART_PRINT("    time: ");
     UART_PRINT("%d", d.time);
     UART_PRINT("\r\n");
@@ -91,54 +87,55 @@ char *getStrValue(cJSON *obj, char *field) {
     return cJSON_GetObjectItemCaseSensitive(obj, field)->valuestring;
 }
 
+
 /* Returns a struct with values from str string (JSON format) */
 struct dev_data getJSONData(char *str) {
 
+    // initialize struct
+    dev_data d_data = {"None", -1, -1, -1, -1, -1, -1, -1, -1, -1, "None", "false", "None", "None", "None", "None"};
     cJSON *json_obj = cJSON_Parse(str);
 
-    // initialize struct
-    dev_data d_data = {"None", -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, "None", "false", "None", "None", "None", "None"};
+    int size = cJSON_GetArraySize(json_obj);
+    if(size == 0) {
+        UART_PRINT("ERROR: Empty string or improper format.\r\n");
+        return d_data;
+    }
 
     d_data.id = getStrValue(json_obj, "id");
     d_data.pub = getIntValue(json_obj, "pub");
     d_data.rec = getIntValue(json_obj, "rec");
 
 
-    int size = cJSON_GetArraySize(json_obj);
-    UART_PRINT("ID: %s/r/n", d_data.id);
-    UART_PRINT("SIZE: %d/r/n", size);
+
+    UART_PRINT("ID: %s\r\n", d_data.id);
+    UART_PRINT("SIZE: %d\r\n", size);
 
         if(strcmp(d_data.id, "ultra") == 0) {
 
                 d_data.time = getIntValue(json_obj, "time");
                 d_data.dist = getIntValue(json_obj, "distance");
                 d_data.status = getStrValue(json_obj, "status");
-                d_data.seq_num = getIntValue(json_obj, "sequence_number");
 
-                cJSON_Delete(json_obj);
-                return d_data;
         }
 
-        if(strcmp(d_data.id, "arm") == 0) {
+        else if(strcmp(d_data.id, "arm") == 0) {
 
                 d_data.time = getIntValue(json_obj, "time");
                 d_data.status = getStrValue(json_obj, "status");
 
-                cJSON_Delete(json_obj);
-                return d_data;
+
         }
 
-        if(strcmp(d_data.id, "rover") == 0) { // rover
+        else if(strcmp(d_data.id, "rover") == 0) { // rover
 
                 d_data.time = getIntValue(json_obj, "time");
                 d_data.status = getStrValue(json_obj, "status");
                 d_data.atDestination = getStrValue(json_obj, "atDestination");
 
-                cJSON_Delete(json_obj);
-                return d_data;
+
         }
 
-        if(strcmp(d_data.id, "pixy") == 0) { // pixy
+        else if(strcmp(d_data.id, "pixy") == 0) { // pixy
 
                 d_data.time = getIntValue(json_obj, "time");
                 d_data.x = getIntValue(json_obj, "x_coordinate");
@@ -147,19 +144,14 @@ struct dev_data getJSONData(char *str) {
                 d_data.width = getIntValue(json_obj, "width");
                 d_data.signature = getIntValue(json_obj, "signature");
 
-                cJSON_Delete(json_obj);
-                return d_data;
         }
 
-        if(strcmp(d_data.id, "topics") == 0) {
+        else if(strcmp(d_data.id, "topics") == 0) {
 
                 d_data.topic1 = getStrValue(json_obj, "topic1");
                 d_data.topic2 = getStrValue(json_obj, "topic2");
                 d_data.topic3 = getStrValue(json_obj, "topic3");
                 d_data.topic4 = getStrValue(json_obj, "topic4");
-
-                cJSON_Delete(json_obj);
-                return d_data;
 
         }
 
@@ -174,8 +166,9 @@ struct dev_data getJSONData(char *str) {
                 d_data.pub = getIntValue(json_obj, "pub");
                 d_data.rec = getIntValue(json_obj, "rec");
 
-            cJSON_Delete(json_obj);
-            return d_data;
         }
+
+        cJSON_Delete(json_obj);
+        return d_data;
 
 }
