@@ -1,29 +1,24 @@
 #include "cJSON.h"
 #include "uart_term.h"
-#include <stdbool.h>
+
 
 typedef struct dev_data {
 
-    // Common values
-    char* id;
-    int pub;
-    int rec;
+    char* id;   // Name of topic ('ultra', 'pixy', 'rover', 'arm', 'statistics', or 'topics')
+    int pub;    // Number of published messages
+    int rec;    // Number of recieved messages
 
     int time;
-
-    // ultra
-    int dist;
-
-    // pixy
-    int x;
-    int y;
+    int dist;  // distance
+    int x;     // x-coordinate
+    int y;     // y-coordinate
     int height;
     int width;
     int signature;
+    char* status;  // true or false
+    char* atDestination;
 
-    char* status; // ultra and arm
-    char* atDestination; // rover
-
+    // topics
     char* topic1;
     char* topic2;
     char* topic3;
