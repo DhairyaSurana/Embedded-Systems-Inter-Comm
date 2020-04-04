@@ -73,11 +73,7 @@
 #include "network_if.h"
 #include "uart_term.h"
 
-
-
-
 #include "debug.h" //RRR
-
 
 /* TI-DRIVERS Header files */
 #include "ti_drivers_config.h"
@@ -132,11 +128,11 @@
 #define SUBSCRIPTION_TOPIC0      "/Broker/To/cc32xx"
 #define SUBSCRIPTION_TOPIC1      "pixy"
 #define SUBSCRIPTION_TOPIC2      "ultra"
-#define SUBSCRIPTION_TOPIC3      "/cc3200/ToggleLEDCmdL1"
+#define SUBSCRIPTION_TOPIC3      "rover"
 
 /* Defining Publish Topic Values                                             */
 #define PUBLISH_TOPIC0           "rover"
-#define PUBLISH_TOPIC0_DATA \
+//#define PUBLISH_TOPIC0_DATA \
     "{\"id\": \"rover\", \n\"pub\": 1, \n\"rec\": 2, \n\"status\": 10, \n\"atDestination\": 10, \n\"time\": 10\n}"
 
 #define PUBLISH_TOPIC1           "topics"//RRR
@@ -238,7 +234,7 @@ const char *publish_topic = { PUBLISH_TOPIC0 };
 
 const char *subscribed_topics = { PUBLISH_TOPIC1 };//RRR
 
-const char *publish_data = { PUBLISH_TOPIC0_DATA };
+//const char *publish_data = { PUBLISH_TOPIC0_DATA };
 
 /* Message Queue                                                             */
 mqd_t g_PBQueue;
@@ -366,6 +362,55 @@ int32_t MQTT_SendMsgToQueue(struct msgQueue *queueElement)
 //! return none
 //
 //*****************************************************************************
+void pushButtonInterruptHandler2(uint_least8_t index)
+{
+    struct msgQueue queueElement;
+
+    /* Disable the SW2 interrupt */
+    GPIO_disableInt(CONFIG_GPIO_BUTTON_0); // SW2
+
+    queueElement.event = PUBLISH_TO_ROVER;
+    queueElement.msgPtr = NULL;
+    queueElement.rovStatus = 0;
+    queueElement.rovDestination = 0;
+    queueElement.rovTime = 0;
+
+    /* write message indicating publish message                             */
+    if(MQTT_SendMsgToQueue(&queueElement))
+    {
+        UART_PRINT("\n\n\rQueue is full\n\n\r");
+    }
+}
+
+//*****************************************************************************
+//
+//! Push Button Handler2(GPIOSW3). Press push button3 Whenever user wants to
+//! disconnect from the remote broker. Write message into message queue
+//! indicating disconnect from broker.
+//!
+//! \param none
+//!
+//! return none
+//
+//*****************************************************************************
+void pushButtonInterruptHandler3(uint_least8_t index)
+{
+    struct msgQueue queueElement;
+    struct msgQueue queueElemRecv;
+
+    queueElement.event = DISC_PUSH_BUTTON_PRESSED;
+    queueElement.msgPtr = NULL;
+
+    /* write message indicating disconnect push button pressed message      */
+    if(MQTT_SendMsgToQueue(&queueElement))
+    {
+        UART_PRINT(
+            "\n\n\rQueue is full, throw first msg and send the new one\n\n\r");
+        mq_receive(g_PBQueue, (char*) &queueElemRecv, sizeof(struct msgQueue),
+                   NULL);
+        MQTT_SendMsgToQueue(&queueElement);
+    }
+}
 
 //*****************************************************************************
 //
@@ -536,9 +581,11 @@ void * MqttClient(void *pvParameters)
             /*send publish message                                       */
 
 
-            //char pub_data[] = "{\"id\": \"rover\", \n\"pub\": 1, \n\"rec\": 2, \n\"status\": 10, \n\"atDestination\": 10, \n\"time\": 10\n}";
-            //char pub_data[50];
-            sprintf(pub_data, "{\"id\": \"%s\", \n\"pub\": %d, \n\"rec\": %d, \n\"status\": %d, \n\"atDestination\": %d, \n\"time\": %d\n}", BOARD_ID, published, recieved, queueElemRecv.rovStatus, queueElemRecv.rovDestination, queueElemRecv.rovTime);
+
+            //UPDATE THE atDestination and status variables to use this one
+            //sprintf(pub_data, "{\"id\": \"%s\", \n\"pub\": %d, \n\"rec\": %d, \n\"status\": %d, \n\"atDestination\": %d, \n\"time\": %d\n}", BOARD_ID, published, recieved, queueElemRecv.rovStatus, queueElemRecv.rovDestination, queueElemRecv.rovTime);
+
+            sprintf(pub_data, "{\"id\": \"%s\", \n\"pub\": %d, \n\"rec\": %d, \n\"status\": \"true\", \n\"atDestination\": \"moving\", \n\"time\": %d\n}", BOARD_ID, published, recieved, queueElemRecv.rovStatus, queueElemRecv.rovDestination, queueElemRecv.rovTime);
 
 
             lRetVal =
@@ -551,13 +598,13 @@ void * MqttClient(void *pvParameters)
 
 
 
-            //UART_PRINT("\n\r CC3200 Publishes the following message \n\r");
-            //UART_PRINT("Topic: %s\n\r", publish_topic);
-            //UART_PRINT("Data: %s\n\r", pub_data);
+            UART_PRINT("\n\r CC3200 Publishes the following message \n\r");
+            UART_PRINT("Topic: %s\n\r", publish_topic);
+            UART_PRINT("Data: %s\n\r", pub_data);
 
             /* Clear and enable again the SW2 interrupt */
-            //GPIO_clearInt(CONFIG_GPIO_BUTTON_0);     // SW2
-            //GPIO_enableInt(CONFIG_GPIO_BUTTON_0);     // SW2
+            GPIO_clearInt(CONFIG_GPIO_BUTTON_0);     // SW2
+            GPIO_enableInt(CONFIG_GPIO_BUTTON_0);     // SW2
 
             break;
         case PUBLISH_SUBSCRIPTIONS:
@@ -576,9 +623,9 @@ void * MqttClient(void *pvParameters)
 
 
 
-                    //UART_PRINT("\n\r CC3200 Publishes the following message \n\r");
-                    //UART_PRINT("Topic: %s\n\r", subscribed_topics);
-                    //UART_PRINT("Data: %s\n\r", pub_data);
+                    UART_PRINT("\n\r CC3200 Publishes the following message \n\r");
+                    UART_PRINT("Topic: %s\n\r", subscribed_topics);
+                    UART_PRINT("Data: %s\n\r", pub_data);
             break;
         /*msg received by client from remote broker (on a topic      */
         /*subscribed by local client)                                */
@@ -771,11 +818,11 @@ void Mqtt_start()
     }
 
     /*enable interrupt for the GPIO 13 (SW3) and GPIO 22 (SW2).              */
-    //GPIO_setCallback(CONFIG_GPIO_BUTTON_0, pushButtonInterruptHandler2);
-    //GPIO_enableInt(CONFIG_GPIO_BUTTON_0); // SW2
+    GPIO_setCallback(CONFIG_GPIO_BUTTON_0, pushButtonInterruptHandler2);
+    GPIO_enableInt(CONFIG_GPIO_BUTTON_0); // SW2
 
-    //GPIO_setCallback(CONFIG_GPIO_BUTTON_1, pushButtonInterruptHandler3);
-    //GPIO_enableInt(CONFIG_GPIO_BUTTON_1); // SW3
+    GPIO_setCallback(CONFIG_GPIO_BUTTON_1, pushButtonInterruptHandler3);
+    GPIO_enableInt(CONFIG_GPIO_BUTTON_1); // SW3
 
     gInitState &= ~MQTT_INIT_STATE;
 }
@@ -823,8 +870,8 @@ void Mqtt_Stop()
     UART_PRINT("\n\r Client Stop completed\r\n");
 
     /*Disable the SW2 and SW3 interrupt */
-    //GPIO_disableInt(CONFIG_GPIO_BUTTON_0); // SW2
-    //GPIO_disableInt(CONFIG_GPIO_BUTTON_1); // SW3
+    GPIO_disableInt(CONFIG_GPIO_BUTTON_0); // SW2
+    GPIO_disableInt(CONFIG_GPIO_BUTTON_1); // SW3
 }
 
 int32_t MqttClient_start()

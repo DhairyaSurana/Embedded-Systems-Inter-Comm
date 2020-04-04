@@ -1,5 +1,5 @@
 #include "json_parse.h"
-
+#include <string.h>
 
 
 /* Prints out struct values to UART */
@@ -7,115 +7,140 @@ void printDevData(dev_data d) {
 
     UART_PRINT("DEVICE STRUCT {\r\n\r\n");
 
-    UART_PRINT("    id: ");
-    UART_PRINT("%d", d.id);
-    UART_PRINT("\r\n");
+    UART_PRINT("    id: %s\r\n", d.id);
+    UART_PRINT("    pub: %d\r\n", d.pub);
+    UART_PRINT("    rec: %d\r\n", d.rec);
 
-    UART_PRINT("    pub: ");
-    UART_PRINT("%d", d.pub);
-    UART_PRINT("\r\n");
+    if(strcmp(d.id, "ultra") == 0) {
+        UART_PRINT("    distance: %d\r\n", d.dist);
+        UART_PRINT("    time: %d\r\n", d.time);
+    }
 
-    UART_PRINT("    rec: ");
-    UART_PRINT("%d", d.rec);
-    UART_PRINT("\r\n");
+    if(strcmp(d.id, "arm") == 0) {
+        UART_PRINT("    status: %s\r\n", d.status);
+        UART_PRINT("    time: %d\r\n", d.time);
+    }
 
-    UART_PRINT("    time: ");
-    UART_PRINT("%d", d.time);
-    UART_PRINT("\r\n");
+    if(strcmp(d.id, "rover") == 0) {
+        UART_PRINT("    atDestination: %s\r\n", d.atDestination);
+        UART_PRINT("    status: %s\r\n", d.status);
+        UART_PRINT("    time: %d\r\n", d.time);
+    }
 
-    UART_PRINT("    status: ");
-    UART_PRINT("%d", d.status);
-    UART_PRINT("\r\n");
+    if(strcmp(d.id, "pixy") == 0) {
 
-    UART_PRINT("    atDestination: ");
-    UART_PRINT("%d", d.atDestination);
-    UART_PRINT("\r\n");
+        UART_PRINT("    time: %d\r\n", d.time);
+        UART_PRINT("    x: %d\r\n", d.x);
+        UART_PRINT("    y: %d\r\n", d.y);
+        UART_PRINT("    width: %d\r\n", d.width);
+        UART_PRINT("    height: %d\r\n", d.height);
+        UART_PRINT("    signature:  %d\r\n", d.signature);
+    }
 
-    UART_PRINT("    x: ");
-    UART_PRINT("%d", d.x);
-    UART_PRINT("\r\n");
+    if(strcmp(d.id, "topics") == 0) {
 
-    UART_PRINT("    y: ");
-    UART_PRINT("%d", d.y);
-    UART_PRINT("\r\n");
+        UART_PRINT("    topic1:  %s\r\n", d.topic1);
+        UART_PRINT("    topic2:  %s\r\n", d.topic2);
+        UART_PRINT("    topic3:  %s\r\n", d.topic3);
+        UART_PRINT("    topic4:  %s\r\n", d.topic4);
 
-    UART_PRINT("    width: ");
-    UART_PRINT("%d", d.width);
-    UART_PRINT("\r\n");
-
-    UART_PRINT("    height: ");
-    UART_PRINT("%d", d.height);
-    UART_PRINT("\r\n");
-
-
-    UART_PRINT("    distance: ");
-    UART_PRINT("%d", d.dist);
-    UART_PRINT("\r\n");
-
-    UART_PRINT("    signature: ");
-    UART_PRINT("%d", d.signature);
+    }
 
     UART_PRINT("\r\n}\r\n");
 
 }
 
-/* Wrapper for cJSON_GetObjectItemCaseSensitive function*/
-int getValue(cJSON *obj, char *field) {
 
-    int val = cJSON_GetObjectItemCaseSensitive(obj, field)->valueint;
-    return (val != 64943) ? val : -1;       // -1 indicates values not found
+/* Wrapper for cJSON_GetObjectItemCaseSensitive function*/
+int getIntValue(cJSON *obj, char *field) {
+
+    cJSON *val_obj = cJSON_GetObjectItemCaseSensitive(obj, field);
+    return (val_obj != NULL) ? val_obj->valueint : -1;       // -1 indicates value not found
 }
+
+char *getStrValue(cJSON *obj, char *field) {
+
+    cJSON *val_obj = cJSON_GetObjectItemCaseSensitive(obj, field);
+    return (val_obj != NULL) ? val_obj->valuestring : "None";
+}
+
 
 /* Returns a struct with values from str string (JSON format) */
 struct dev_data getJSONData(char *str) {
 
+    // initialize struct
+    dev_data d_data = {"None", -1, -1, -1, -1, -1, -1, -1, -1, -1, "None", "false", "None", "None", "None", "None"};
+
     cJSON *json_obj = cJSON_Parse(str);
 
-    // initializint struct
-    dev_data d_data = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-
-    d_data.id = getValue(json_obj, "id");
-    d_data.pub = getValue(json_obj, "pub");
-    d_data.rec = getValue(json_obj, "rec");
-    d_data.time = getValue(json_obj, "time");
-
-    switch(cJSON_GetArraySize(json_obj)) {
-
-        case 5: // ultra or arm
-
-            d_data.dist = getValue(json_obj, "distance");
-            d_data.status = getValue(json_obj, "status");
-
-            cJSON_Delete(json_obj);
-            return d_data;
-
-        case 6: // rover
-
-            d_data.status = getValue(json_obj, "status");
-            d_data.atDestination = getValue(json_obj, "atDestination");
-
-            cJSON_Delete(json_obj);
-            return d_data;
-
-        case 9: // pixy
-
-            d_data.x = getValue(json_obj, "x_coordinate");
-            d_data.y = getValue(json_obj, "y_coordinate");
-            d_data.height = getValue(json_obj, "height");
-            d_data.width = getValue(json_obj, "width");
-            d_data.signature = getValue(json_obj, "signature");
-
-            cJSON_Delete(json_obj);
-            return d_data;
-
-        default: // Incorrect size error handling
-
-            UART_PRINT("ERROR: Incorrect size\r\n");
-            dev_data null_data = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-
-            cJSON_Delete(json_obj);
-            return null_data;
-
+    int size = cJSON_GetArraySize(json_obj);
+    if(size == 0) {
+        UART_PRINT("ERROR: Empty string or improper format.\r\n");
+        return d_data;
     }
+
+    d_data.id = getStrValue(json_obj, "id");
+    d_data.pub = getIntValue(json_obj, "pub");
+    d_data.rec = getIntValue(json_obj, "rec");
+
+//    UART_PRINT("ID: %s\r\n", d_data.id);
+//    UART_PRINT("SIZE: %d\r\n", size);
+
+        if(strcmp(d_data.id, "ultra") == 0) { // ultra
+
+                d_data.time = getIntValue(json_obj, "time");
+                d_data.dist = getIntValue(json_obj, "distance");
+                d_data.status = getStrValue(json_obj, "status");
+
+        }
+
+        else if(strcmp(d_data.id, "arm") == 0) { // arm
+
+                d_data.time = getIntValue(json_obj, "time");
+                d_data.status = getStrValue(json_obj, "status");
+
+
+        }
+
+        else if(strcmp(d_data.id, "rover") == 0) { // rover
+
+                d_data.time = getIntValue(json_obj, "time");
+                d_data.status = getStrValue(json_obj, "status");
+                d_data.atDestination = getStrValue(json_obj, "atDestination");
+
+
+        }
+
+        else if(strcmp(d_data.id, "pixy") == 0) { // pixy
+
+                d_data.time = getIntValue(json_obj, "time");
+                d_data.x = getIntValue(json_obj, "x_coordinate");
+                d_data.y = getIntValue(json_obj, "y_coordinate");
+                d_data.height = getIntValue(json_obj, "height");
+                d_data.width = getIntValue(json_obj, "width");
+                d_data.signature = getIntValue(json_obj, "signature");
+
+        }
+
+        else if(strcmp(d_data.id, "topics") == 0) {
+
+                d_data.topic1 = getStrValue(json_obj, "topic1");
+                d_data.topic2 = getStrValue(json_obj, "topic2");
+                d_data.topic3 = getStrValue(json_obj, "topic3");
+                d_data.topic4 = getStrValue(json_obj, "topic4");
+
+        }
+
+        else if(strcmp(d_data.id, "statistics") != 0){  // Invalid ID error
+
+           UART_PRINT("ERROR: id not recognized.\r\n");
+           d_data.id = "None";
+           d_data.pub = -1;
+           d_data.rec = -1;
+        }
+
+
+        cJSON_Delete(json_obj);
+        return d_data;
 
 }
