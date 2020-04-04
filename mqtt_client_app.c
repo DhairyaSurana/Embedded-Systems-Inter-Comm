@@ -129,10 +129,10 @@
 #define SUBSCRIPTION_TOPIC_COUNT 4
 
 /* Defining Subscription Topic Values                                        */
-#define SUBSCRIPTION_TOPIC0      "/Broker/To/cc32xx"
+#define SUBSCRIPTION_TOPIC0      ""
 #define SUBSCRIPTION_TOPIC1      "pixy"
 #define SUBSCRIPTION_TOPIC2      "ultra"
-#define SUBSCRIPTION_TOPIC3      "rover"
+#define SUBSCRIPTION_TOPIC3      ""
 
 /* Defining Publish Topic Values                                             */
 #define PUBLISH_TOPIC0           "rover"
